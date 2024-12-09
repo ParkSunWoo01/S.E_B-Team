@@ -9,7 +9,7 @@ MAX_SPEED = 140 # 최대 시속
 LOCK_SPEED = 30 # 차량잠금 시속
 AUTO_LOCKING_FLAG = True
 
-
+#branch 테스트
 
 # execute_command를 제어하는 콜백 함수
 # -> 이 함수에서 시그널을 입력받고 처리하는 로직을 구성하면, 알아서 GUI에 연동이 됩니다.
@@ -185,7 +185,7 @@ class Test_Engine_Ignition(unittest.TestCase):
         restatus()
         execute_command_callback("ENGINE_BTN", car_controller) 
         self.assertEqual(car_controller.get_engine_status(), False) # 버튼만 눌렀을 때
-
+        
         restatus()
         execute_command_callback("BRAKE", car_controller) 
         execute_command_callback("ENGINE_BTN", car_controller)
