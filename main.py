@@ -1,6 +1,7 @@
 import threading
 import time
 import unittest
+import os
 from car import Car
 from car_controller import CarController
 from gui import CarSimulatorGUI
@@ -220,6 +221,40 @@ class Test_Engine_Ignition(unittest.TestCase):
         execute_command_callback("ACCELERATE", car_controller)
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(), True) # 가속했을 떄
+def compare_state(prev_state, current_state):
+    return prev_state == current_state
+
+def execute_command_from_file(filename):
+    """
+    주어진 파일을 읽어들여 명령어를 실행하는 함수.
+    파일 내의 명령어를 하나씩 실행.
+    """
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        
+    prev_state = {}  # 초기 상태 설정 (필요에 따라 초기화)
+    for line in lines:
+        command = line.strip()  # 줄바꿈 제거
+        if command:  # 공백이 아닌 경우에만 실행
+            current_state = {}  # 상태가 업데이트될 부분
+
+            # 명령어 실행
+            execute_command_callback(command, car_controller)
+            
+            # 상태 비교 (현재 상태와 이전 상태 비교)
+            if not compare_state(prev_state, current_state):
+                print(f"Command failed: {command}")
+            
+            # 이전 상태를 현재 상태로 업데이트
+            prev_state = current_state
+
+class TestFromTextFile(unittest.TestCase):
+    def __init__(self, test_file):
+        super().__init__()
+        self.test_file = test_file
+
+    def runTest(self):
+        execute_command_from_file(self.test_file)
 
 
 # 파일 경로를 입력받는 함수
@@ -254,6 +289,12 @@ if __name__ == "__main__":
     suite=unittest.TestSuite()  #suite로 unittest 관리
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_SOS_system))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Engine_Ignition))
+    for filename in os.listdir("src/"):
+        if filename.endswith(".txt"):  # test_로 시작하는 .txt 파일만
+            test_file_path = os.path.join("src/", filename)
+                
+            # 각 텍스트 파일에 대한 테스트 실행
+            suite.addTest(TestFromTextFile(test_file_path))
     unittest.TextTestRunner().run(suite)
     restatus()
 
