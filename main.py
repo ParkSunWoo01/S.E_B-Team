@@ -16,6 +16,15 @@ AUTO_LOCKING_FLAG = True
 def execute_command_callback(command, car_controller):
     global AUTO_LOCKING_FLAG
     
+    def read_two_command(command):              #2024-12-09일 20:16 추가 : 2개이상인지 판단하고 출력하는 명령
+        is_two_text = command.split()           # 공백단위로 쪼개고
+        if(len(is_two_text)>=2):                # 쪼갠 리스트의 갯수가 2개인지 확인한다
+            if(is_two_text[0] == "BRAKE"):      # 여기에 앞과 뒤의 경우의 수 를 추가한다.
+                if(is_two_text[1]=="ENGINE_BTN"):
+                    command = "ENGINE_BTN"
+        if(is_two_text[0] == "ENGINE_BTN"):     # 엔진이 그냥 입력되었을때 거름망
+            command = ""
+        return command
     def all_door_closed(car_controller):            #모든 문이 닫혀 있다면
         return car_controller.get_left_door_status()=="CLOSED" and car_controller.get_right_door_status()=="CLOSED"
 
@@ -30,7 +39,7 @@ def execute_command_callback(command, car_controller):
         car_controller.unlock_left_door()
         car_controller.unlock_right_door()
 
-
+    command = read_two_command(command)                   #2개읽고 행동
 
     if command == "ENGINE_BTN":
         if car_controller.get_speed()==0: # 시속이 0일 경우에 한해서 버튼 토글 가능
@@ -234,6 +243,7 @@ if __name__ == "__main__":
 
     suite=unittest.TestSuite()  #suite로 unittest 관리
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_SOS_system))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Engine_Ignition))
     unittest.TextTestRunner().run(suite)
     restatus()
 
