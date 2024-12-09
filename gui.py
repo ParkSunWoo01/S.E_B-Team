@@ -154,6 +154,17 @@ class CarSimulatorGUI:
         # 명령 처리 완료 후 GUI 업데이트
         self.window.after(0, self.update_gui)
 
+    def read_two_command(self, command):     #2024-12-09일 18:00 추가 : 2개이상인지 판단하고 출력하는 명령
+        is_two_text = command.split()           # 공백단위로 쪼개고
+        if(len(is_two_text)>=2):                # 쪼갠 리스트의 갯수가 2개인지 확인한다
+            if(is_two_text[0] == "BRAKE"):      # 여기에 앞과 뒤의 경우의 수 를 추가한다.
+                if(is_two_text[1]=="ENGINE_BTN"):
+                    command = "ENGINE_BTN"
+        if(is_two_text[0] == "ENGINE_BTN"):     # 엔진이 그냥 입력되었을때 거름망
+            command = ""
+
+        return command
+
     # 명령어 파일을 처리하는 함수
     def process_commands(self, file_path):
         """파일에서 명령어를 읽어와 처리"""
@@ -167,7 +178,8 @@ class CarSimulatorGUI:
                 nonlocal current_command_index
                 if current_command_index < len(commands):
                     command = commands[current_command_index]
-                    self.execute_command(command)  # 명령 실행
+                    real_command = self.read_two_command(command)            #2024-12-09 18:00 추가
+                    self.execute_command(real_command)  # 명령 실행
                     current_command_index += 1
                     self.window.after(2000, execute_next_command)  # 3초 대기 후 다음 명령 실행
                 else:
