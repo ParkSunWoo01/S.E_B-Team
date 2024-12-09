@@ -186,22 +186,32 @@ class Test_Engine_Ignition(unittest.TestCase):
         execute_command_callback("ENGINE_BTN", car_controller) 
         self.assertEqual(car_controller.get_engine_status(), False) # 버튼만 눌렀을 때
 
+        restatus()
         execute_command_callback("BRAKE", car_controller) 
         execute_command_callback("ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(), False) # 브레이크와 버튼을 시간차를 두고 따로 눌렀을 떄
 
+        restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(),True) # 브레이크와 버튼을 동시에 눌렀을 떄
 
     def test_engine_ignition_repeat(self): #반복 시동에 관한 테스트
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("ENGINE_BTN", car_controller)
+        self.assertEqual(car_controller.get_engine_status(), True) #시동을 끌 때도 브레이크를 같이 눌러야함
+
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        self.assertEqual(car_controller.get_engine_status(), False)  # 시동을 껐을 떄
+
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(), True)  # 여러번 시동을 걸었을 때
         
-        execute_command_callback("ENGINE_BTN", car_controller)
-        self.assertEqual(car_controller.get_engine_status(), False) # 시동을 껐을 떄
 
     def test_engine_ignition_speed(self): #속도가 0이 아닐 때의 테스트
         restatus()
