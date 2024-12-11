@@ -16,15 +16,33 @@ AUTO_LOCKING_FLAG = True
 def execute_command_callback(command, car_controller):
     global AUTO_LOCKING_FLAG
     
-    def read_two_command(command):              #2024-12-09일 20:16 추가 : 2개이상인지 판단하고 출력하는 명령
+    def read_command(command):                  # 한줄에서 여러개의 명령이 있는지 판단
         is_two_text = command.split()           # 공백단위로 쪼개고
-        if(len(is_two_text)>=2):                # 쪼갠 리스트의 갯수가 2개인지 확인한다
-            if(is_two_text[0] == "BRAKE"):      # 여기에 앞과 뒤의 경우의 수 를 추가한다.
-                if(is_two_text[1]=="ENGINE_BTN"):
-                    command = "ENGINE_BTN"
-        if(is_two_text[0] == "ENGINE_BTN"):     # 엔진이 그냥 입력되었을때 거름망
+        if (len(is_two_text)>2):                # 3개이상의 명령이 동시 입력되었을때 안전을 위한 무시
             command = ""
+        
+        if(len(is_two_text)==1):                 # 명령이 하나 일 때
+            if(is_two_text[0] == "ENGINE_BTN"):     # 엔진이 그냥 입력되었을때 거름망
+                command = ""
+            
+        if (len(is_two_text)==2):               # 2개의 명령일때 선입력/후입력으로 나눔
+            if(is_two_text[0] == "BRAKE"):      # 선입력이 브레이크 일경우
+                if(is_two_text[1]=="ENGINE_BTN"):   # 브레이크 후 엔진일경우 점화
+                    command = "ENGINE_BTN"
+                else:                               # 브레이쿠 후 싹 무시
+                    command = "BRAKE"
+            else:                               # 나머지는 그냥 순차 진행
+                i =0
+                command=""
+                while(i<len(is_two_text)):
+                    execute_command_callback(is_two_text[i],car_controller)
+                    gui.update_gui()
+                    time.sleep(0.5)
+                    i +=1
+
+        
         return command
+    
     def all_door_closed(car_controller):            #모든 문이 닫혀 있다면
         return car_controller.get_left_door_status()=="CLOSED" and car_controller.get_right_door_status()=="CLOSED"
 
@@ -39,7 +57,7 @@ def execute_command_callback(command, car_controller):
         car_controller.unlock_left_door()
         car_controller.unlock_right_door()
 
-    command = read_two_command(command)                   #2개읽고 행동
+    command = read_command(command)                   #2개읽고 행동
 
     if command == "ENGINE_BTN":
         if car_controller.get_speed()==0: # 시속이 0일 경우에 한해서 버튼 토글 가능
@@ -222,28 +240,28 @@ class Test_Engine_Ignition(unittest.TestCase):
         self.assertEqual(car_controller.get_engine_status(), True) # 가속했을 떄
 
 class Test_Two_Commands(unittest.TestCase):
-    def test_two_commands_brake_accel(self): #운전중에 브레이크와 액셀이 같이 입력되는 경우
+    def test_two_commands_brake_accel(self): 
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("ACCELERATE", car_controller)
         test_speed = car_controller.get_speed()
         execute_command_callback("BRAKE ACCELERATE", car_controller)
-        self.assertEqual(test_speed, car_controller.get_speed())
+        self.assertEqual(test_speed, car_controller.get_speed())    #운전중에 브레이크와 액셀이 같이 입력되는 경우
 
-    def test_two_coomands_brake_brake(self): #운전중에 브레이크 2번 입력되는 경우
+    def test_two_coomands_brake_brake(self): 
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("ACCELERATE", car_controller)
         execute_command_callback("ACCELERATE", car_controller)
         test_speed = car_controller.get_speed()
         execute_command_callback("BRAKE BRAKE", car_controller)
-        self.assertEqual(test_speed, car_controller.get_speed())
+        self.assertEqual(test_speed, car_controller.get_speed()) #운전중에 브레이크 2번 입력되는 경우
 
-    def test_two_coomands_doorlock(self): #문 열기 2번 입력되는 경우
+    def test_two_coomands_doorlock(self): 
         restatus()
         test_doorL = car_controller.get_left_door_status()
         execute_command_callback("LEFT_DOOR_OPEN LEFT_DOOR_OPEN", car_controller)
-        self.assertEqual(test_doorL, car_controller.get_left_door_status())
+        self.assertEqual(test_doorL, car_controller.get_left_door_status()) #문 열기 2번 입력되는 경우
 
 
 
