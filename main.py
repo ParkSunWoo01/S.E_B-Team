@@ -240,28 +240,35 @@ class Test_Engine_Ignition(unittest.TestCase):
         self.assertEqual(car_controller.get_engine_status(), True) # 가속했을 떄
 
 class Test_Two_Commands(unittest.TestCase):
-    def test_two_commands_brake_accel(self): 
+    def test_two_commands_brake_accel(self):    #운전중에 브레이크와 액셀이 같이 입력되는 경우
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("ACCELERATE", car_controller)
-        test_speed = car_controller.get_speed()
+        prev_speed = car_controller.get_speed()
         execute_command_callback("BRAKE ACCELERATE", car_controller)
-        self.assertEqual(test_speed, car_controller.get_speed())    #운전중에 브레이크와 액셀이 같이 입력되는 경우
+        self.assertEqual(car_controller.get_speed(), prev_speed - 10)
 
-    def test_two_coomands_brake_brake(self): 
+    def test_two_commands_accel_accel(self):    #액셀이 2번 입력되는 경우
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        execute_command_callback("ACCELERATE", car_controller)
-        execute_command_callback("ACCELERATE", car_controller)
-        test_speed = car_controller.get_speed()
-        execute_command_callback("BRAKE BRAKE", car_controller)
-        self.assertEqual(test_speed, car_controller.get_speed()) #운전중에 브레이크 2번 입력되는 경우
+        prev_speed = car_controller.get_speed()
+        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
+        self.assertEqual(car_controller.get_speed(), prev_speed + 20)
 
-    def test_two_coomands_doorlock(self): 
+    def test_two_coomands_brake_brake(self):    #운전중에 브레이크 2번 입력되는 경우
         restatus()
-        test_doorL = car_controller.get_left_door_status()
-        execute_command_callback("LEFT_DOOR_OPEN LEFT_DOOR_OPEN", car_controller)
-        self.assertEqual(test_doorL, car_controller.get_left_door_status()) #문 열기 2번 입력되는 경우
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
+        prev_speed = car_controller.get_speed()
+        execute_command_callback("BRAKE BRAKE", car_controller)
+        self.assertEqual(car_controller.get_speed(), prev_speed - 10)
+
+    def test_two_coomands_doorlock(self):       #문 잠금해제 2번 입력되는 경우
+        restatus()
+        execute_command_callback("LEFT_DOOR_UNLOCK RIGHT_DOOR_UNLOCK", car_controller)
+        self.assertEqual("UNLOCKED", car_controller.get_left_door_lock())
+        self.assertEqual("UNLOCKED", car_controller.get_right_door_lock())
+
 
 
 
