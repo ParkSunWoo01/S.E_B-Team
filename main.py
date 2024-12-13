@@ -29,7 +29,7 @@ def execute_command_callback(command, car_controller):
             if(is_two_text[0] == "BRAKE"):      # 선입력이 브레이크 일경우
                 if(is_two_text[1]=="ENGINE_BTN"):   # 브레이크 후 엔진일경우 점화
                     command = "ENGINE_BTN"
-                else:                               # 브레이쿠 후 싹 무시
+                else:                               # 브레이크 후 이후 명령은 무시
                     command = "BRAKE"
             else:                               # 나머지는 그냥 순차 진행
                 i =0
@@ -286,6 +286,14 @@ def file_input_thread(gui):
         # 파일 경로를 받은 후 GUI의 mainloop에서 실행할 수 있도록 큐에 넣음
         gui.window.after(0, lambda: gui.process_commands(file_path))
 
+def run_tests():
+    suite = unittest.TestSuite()  # Suite로 unittest 관리
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_SOS_system))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Engine_Ignition))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Two_Commands))
+    unittest.TextTestRunner().run(suite)
+
+
 # 메인 실행
 # -> 가급적 main login은 수정하지 마세요.
 if __name__ == "__main__":
@@ -301,11 +309,7 @@ if __name__ == "__main__":
     input_thread.daemon = True  # 메인 스레드가 종료되면 서브 스레드도 종료되도록 설정
     input_thread.start()
 
-    suite=unittest.TestSuite()  #suite로 unittest 관리
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_SOS_system))
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Engine_Ignition))
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Two_Commands))
-    unittest.TextTestRunner().run(suite)
+    run_tests()
     restatus()
 
     # GUI 시작 (메인 스레드에서 실행)
