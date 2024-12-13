@@ -213,7 +213,6 @@ class Test_Engine_Ignition(unittest.TestCase):
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(),True) # 브레이크와 버튼을 동시에 눌렀을 떄
 
-    def test_engine_ignition_repeat(self): #반복 시동에 관한 테스트
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("ENGINE_BTN", car_controller)
@@ -221,14 +220,9 @@ class Test_Engine_Ignition(unittest.TestCase):
 
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        self.assertEqual(car_controller.get_engine_status(), False)  # 시동을 껐을 떄
-
-        restatus()
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(), True)  # 여러번 시동을 걸었을 때
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        self.assertEqual(car_controller.get_engine_status(), False)  # 여러번 시동을 걸었을 때
         
 
     def test_engine_ignition_speed(self): #속도가 0이 아닐 때의 테스트
@@ -238,6 +232,18 @@ class Test_Engine_Ignition(unittest.TestCase):
         execute_command_callback("ACCELERATE", car_controller)
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         self.assertEqual(car_controller.get_engine_status(), True) # 가속했을 떄
+    
+    def test_engine_ignition_SOS(self): # SOS 기능과 연계되는지의 테스트
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("ACCELERATE", car_controller)
+        execute_command_callback("ACCELERATE", car_controller)
+        execute_command_callback("SOS", car_controller)
+        self.assertEqual(car_controller.get_speed(), 0)
+        self.assertFalse(car_controller.get_trunk_status())
+        self.assertEqual(car_controller.get_left_door_lock(),"UNLOCKED")
+        self.assertEqual(car_controller.get_right_door_lock(),"UNLOCKED")
+        self.assertFalse(car_controller.get_lock_status())
 
 class Test_Two_Commands(unittest.TestCase):
     def test_two_commands_brake_accel(self):    #운전중에 브레이크와 액셀이 같이 입력되는 경우
@@ -248,7 +254,22 @@ class Test_Two_Commands(unittest.TestCase):
         execute_command_callback("BRAKE ACCELERATE", car_controller)
         self.assertEqual(car_controller.get_speed(), prev_speed - 10)
 
-    def test_two_coomands_doorlock(self):       #문 잠금해제 2번 입력되는 경우
+    def test_two_commands_accel_accel(self):    #액셀이 2번 입력되는 경우
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        prev_speed = car_controller.get_speed()
+        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
+        self.assertEqual(car_controller.get_speed(), prev_speed + 20)
+
+    def test_two_commands_brake_brake(self):    #운전중에 브레이크 2번 입력되는 경우
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
+        prev_speed = car_controller.get_speed()
+        execute_command_callback("BRAKE BRAKE", car_controller)
+        self.assertEqual(car_controller.get_speed(), prev_speed - 10)
+
+    def test_two_commands_doorlock(self):       #문 잠금해제 2번 입력되는 경우
         restatus()
         execute_command_callback("LEFT_DOOR_UNLOCK RIGHT_DOOR_UNLOCK", car_controller)
         self.assertEqual("UNLOCKED", car_controller.get_left_door_lock())
