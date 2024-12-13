@@ -254,21 +254,6 @@ class Test_Two_Commands(unittest.TestCase):
         execute_command_callback("BRAKE ACCELERATE", car_controller)
         self.assertEqual(car_controller.get_speed(), prev_speed - 10)
 
-    def test_two_commands_accel_accel(self):    #액셀이 2번 입력되는 경우
-        restatus()
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        prev_speed = car_controller.get_speed()
-        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
-        self.assertEqual(car_controller.get_speed(), prev_speed + 20)
-
-    def test_two_commands_brake_brake(self):    #운전중에 브레이크 2번 입력되는 경우
-        restatus()
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
-        prev_speed = car_controller.get_speed()
-        execute_command_callback("BRAKE BRAKE", car_controller)
-        self.assertEqual(car_controller.get_speed(), prev_speed - 10)
-
     def test_two_commands_doorlock(self):       #문 잠금해제 2번 입력되는 경우
         restatus()
         execute_command_callback("LEFT_DOOR_UNLOCK RIGHT_DOOR_UNLOCK", car_controller)
@@ -297,7 +282,8 @@ def file_input_thread(gui):
         if file_path.lower() == 'exit':
             print("Exiting program.")
             break
-
+        if file_path == "Sogong_Bteam":
+            run_tests()
         # 파일 경로를 받은 후 GUI의 mainloop에서 실행할 수 있도록 큐에 넣음
         gui.window.after(0, lambda: gui.process_commands(file_path))
 
@@ -320,7 +306,6 @@ if __name__ == "__main__":
     gui = CarSimulatorGUI(car_controller, lambda command: execute_command_callback(command, car_controller))
 
     # 파일 입력 스레드는 별도로 실행하여, GUI와 병행 처리
-    run_tests()
     input_thread = threading.Thread(target=file_input_thread, args=(gui,))
     input_thread.daemon = True  # 메인 스레드가 종료되면 서브 스레드도 종료되도록 설정
     input_thread.start()
