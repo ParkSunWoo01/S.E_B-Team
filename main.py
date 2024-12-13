@@ -284,6 +284,7 @@ def file_input_thread(gui):
             break
         if file_path == "Sogong_Bteam":
             run_tests()
+            break
         # 파일 경로를 받은 후 GUI의 mainloop에서 실행할 수 있도록 큐에 넣음
         gui.window.after(0, lambda: gui.process_commands(file_path))
 
