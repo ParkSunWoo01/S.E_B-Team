@@ -157,7 +157,7 @@ def restatus():          #초기 상태로 초기화
         car_controller.brake()
     car_controller.close_trunk()
     car_controller.close_right_door()
-    car_controller.close_left_door
+    car_controller.close_left_door()
     car_controller.lock_right_door()
     car_controller.lock_left_door()
     if car.engine_on == True:
@@ -271,6 +271,52 @@ class Test_Two_Commands(unittest.TestCase):
         execute_command_callback("ACCELERATE TRUNK_OPEN", car_controller)
         self.assertTrue(car_controller.get_trunk_status())  #트렁크가 닫혀 있는지
 
+    def test_two_commands_door_accel(self):    #차문 열기와 액셀이 입력되는 경우
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("LEFT_DOOR_UNLOCK", car_controller)
+        execute_command_callback("LEFT_DOOR_OPEN   ACCELERATE", car_controller)
+        self.assertEqual(0, car_controller.get_speed())     #왼쪽문 선행 그 후 엑셀
+        
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("RIGHT_DOOR_UNLOCK", car_controller)
+        execute_command_callback("RIGHT_DOOR_OPEN ACCELERATE", car_controller)
+        self.assertEqual(0, car_controller.get_speed())     #오른쪽문 선행 그 후 엑셀
+
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("LEFT_DOOR_UNLOCK", car_controller)
+        execute_command_callback("ACCELERATE LEFT_DOOR_OPEN", car_controller)
+        self.assertEqual("CLOSED", car_controller.get_left_door_status())  #왼쪽문이 열려있는지 닫혀 있는지
+        
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("RIGHT_DOOR_UNLOCK", car_controller)
+        execute_command_callback("ACCELERATE RIGHT_DOOR_OPEN", car_controller)
+        self.assertEqual("CLOSED", car_controller.get_right_door_status())  #오른쪽문 열려있는지 닫혀 있는지    
+
+class Test_Three_Commands(unittest.TestCase):       #3가지 이상 입력되었을떄 모든상태가 같아야함
+    def test_three_test(self):
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        prev_speed = car_controller.get_speed()
+        prev_left_door_sta= car_controller.get_left_door_status()
+        prev_right_door_sta= car_controller.get_right_door_status()
+        prev_left_door_lock=car_controller.get_left_door_lock()
+        prev_right_door_lock=car_controller.get_right_door_lock()
+        prev_trunk = car_controller.get_trunk_status()
+        prev_engine=car_controller.get_engine_status()
+        execute_command_callback("BRAKE   ENGINE_BTN    ACCELERATE",car_controller)
+        execute_command_callback("RIGHT_DOOR_UNLOCK TRUNK_OPEN  LEFT_DOOR_OPEN",car_controller)
+        self.assertEqual(prev_speed,car_controller.get_speed())     #속도
+        self.assertEqual(prev_left_door_sta,car_controller.get_left_door_status())    #좌측문
+        self.assertEqual(prev_right_door_sta,car_controller.get_right_door_status())    #우측문
+        self.assertEqual(prev_left_door_lock,car_controller.get_left_door_lock()) #좌측문 잠금
+        self.assertEqual(prev_right_door_lock,car_controller.get_right_door_lock()) #우측문 잠금
+        self.assertEqual(prev_trunk,car_controller.get_trunk_status()) #트렁크
+        self.assertEqual(prev_engine,car_controller.get_engine_status()) #엔진
+
 
 # 파일 경로를 입력받는 함수
 # -> 가급적 수정하지 마세요.
@@ -284,7 +330,7 @@ def file_input_thread(gui):
             break
         if file_path == "Sogong_Bteam":
             run_tests()
-            break
+            continue
         # 파일 경로를 받은 후 GUI의 mainloop에서 실행할 수 있도록 큐에 넣음
         gui.window.after(0, lambda: gui.process_commands(file_path))
 
@@ -293,6 +339,7 @@ def run_tests():
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_SOS_system))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Engine_Ignition))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Two_Commands))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Test_Three_Commands))
     unittest.TextTestRunner().run(suite)
 
 
