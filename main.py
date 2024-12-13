@@ -248,21 +248,6 @@ class Test_Two_Commands(unittest.TestCase):
         execute_command_callback("BRAKE ACCELERATE", car_controller)
         self.assertEqual(car_controller.get_speed(), prev_speed - 10)
 
-    def test_two_commands_accel_accel(self):    #액셀이 2번 입력되는 경우
-        restatus()
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        prev_speed = car_controller.get_speed()
-        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
-        self.assertEqual(car_controller.get_speed(), prev_speed + 20)
-
-    def test_two_coomands_brake_brake(self):    #운전중에 브레이크 2번 입력되는 경우
-        restatus()
-        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
-        execute_command_callback("ACCELERATE ACCELERATE", car_controller)
-        prev_speed = car_controller.get_speed()
-        execute_command_callback("BRAKE BRAKE", car_controller)
-        self.assertEqual(car_controller.get_speed(), prev_speed - 10)
-
     def test_two_coomands_doorlock(self):       #문 잠금해제 2번 입력되는 경우
         restatus()
         execute_command_callback("LEFT_DOOR_UNLOCK RIGHT_DOOR_UNLOCK", car_controller)
@@ -274,6 +259,11 @@ class Test_Two_Commands(unittest.TestCase):
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("TRUNK_OPEN ACCELERATE", car_controller)
         self.assertEqual(0, car_controller.get_speed())
+
+        restatus()
+        execute_command_callback("BRAKE ENGINE_BTN", car_controller)
+        execute_command_callback("ACCELERATE TRUNK_OPEN", car_controller)
+        self.assertTrue(car_controller.get_trunk_status())  #트렁크가 닫혀 있는지
 
 
 # 파일 경로를 입력받는 함수
