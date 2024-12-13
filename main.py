@@ -273,8 +273,7 @@ class Test_Two_Commands(unittest.TestCase):
         restatus()
         execute_command_callback("BRAKE ENGINE_BTN", car_controller)
         execute_command_callback("TRUNK_OPEN ACCELERATE", car_controller)
-        print(car_controller.get_speed())
-        self.assertEqual("True", car_controller.get_trunk_status())
+        self.assertEqual(0, car_controller.get_speed())
 
 
 # 파일 경로를 입력받는 함수
